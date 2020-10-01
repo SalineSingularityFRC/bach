@@ -67,7 +67,9 @@ fn walk(p: &Path, pattern: Regex) -> Result<Vec<Doc>, Box<dyn std::error::Error>
                     comments[idx].push(line);
                     isdoc = true;
                 } else {
+                    // Are we currently documenting?
                     if isdoc {
+                        // Derive a definition from the line, hoping it's a definition
                         match Definition::derive(line) {
                             // if we match, set that to the definition
                             Some(d) => {
@@ -94,13 +96,20 @@ fn main() -> std::io::Result<()> {
     }
 
     // Match doc comments
-    let pattern: Regex = Regex::new(r"(?i)^\s*///.*").unwrap();
+    let pattern: Regex = Regex::new(r"(?i)^\s*///.*").expect("Failed to compile doc comment regex");
     let cwd = Path::new("./");
-    let docs = walk(cwd, pattern).unwrap();
+    let docs = match walk(cwd, pattern) {
+        Ok(d) => d,
+        Err(e) => {
+            eprintln!("Failed to walk directory: {}", e);
+            std::process::exit(1);
+        }
+    };
 
     // Get classes out of the docs
     let classes = find!(docs => classes);
-    let mut generator = Generator::new(std::env::current_dir()?.to_str().unwrap().to_string(), classes, Theme::Default);
+    // TODO(@monarrk): There's no way this needs to be this long
+    let mut generator = Generator::new(std::env::current_dir()?.to_str().expect("Failed to get current working directory as string").to_string(), classes, Theme::Default);
     let out = generator.generate();
 
     // Create the output file
