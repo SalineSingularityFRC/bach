@@ -84,6 +84,9 @@ impl<'a> Generator<'a> {
                     <body>
                         {head}
                         {content}
+
+                        <br/>
+                        <h6>Generated with <a href="https://github.com/SalineSingularityFRC/bach" target="_blank">Bach</a></h6>
                     </body>
                 </html>"#,
                 title = self.title,
