@@ -6,6 +6,7 @@
 
 use regex::Regex;
 
+// Something that is documented
 #[derive(Debug)]
 pub struct Doc {
     pub tag: Vec<String>,
@@ -20,10 +21,12 @@ impl Doc {
         }
     }
 
+    // Push a new string to the tag
     pub fn push(&mut self, s: String) {
         self.tag.push(s);
     }
 
+    // Set the definition 
     pub fn set_def(&mut self, def: Definition) {
         self.def = def;
     }
@@ -36,6 +39,7 @@ impl Doc {
     }
 }
 
+// An actual definition
 #[derive(Debug)]
 pub enum Definition {
     Class(ClassDef),
@@ -43,6 +47,7 @@ pub enum Definition {
 }
 
 impl Definition {
+    // Derive a definition from regex
     pub fn derive(s: String) -> Option<Self> {
         // java class definition pattern
         // absolute hell
@@ -58,19 +63,27 @@ impl Definition {
             Some(c) => c,
             None => return None
         };
+
+        // Return the correct type of data
         Some(match caps.name("type").unwrap().as_str() {
+            // A class
+            // TODO(@monarrk): clean this please dear god
             "class" => Definition::Class(ClassDef::new(
+                    // Get the name
                     String::from(caps.name("name").unwrap().as_str()),
+                    // Get the modifiers
                     String::from(match caps.name("modifier") {
                         Some(n) => n.as_str(),
                         None => "",
                     }),
+                    // Get the raw string with `{` taken off the end
                     s.trim_end_matches("{").to_string())),
             _ => Definition::None,
         })
     }
 }
 
+// A class definition
 #[derive(Debug)]
 pub struct ClassDef {
     name: String,
@@ -91,6 +104,7 @@ impl ClassDef {
         &self.name
     }
 
+    // Return the raw definition line straight from the source code
     pub fn raw(&self) -> &str {
         &self.raw
     }

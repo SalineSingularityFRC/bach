@@ -8,6 +8,7 @@ mod theme;
 
 use crate::doc::{Doc, Definition};
 
+// A generator type for generating the documentation
 pub struct Generator<'a> {
     classes: Vec<&'a Doc>,
     theme: Theme,
@@ -27,15 +28,21 @@ impl<'a> Generator<'a> {
         }
     }
 
+    // allow dead code for now because we don't use this yet
+    #[allow(dead_code)]
     pub fn set_theme(&mut self, theme: Theme) {
         self.theme = theme;
     }
 
+    // Return a String of generated HTML derived from the information
     pub fn generate(&mut self) -> String {
+        // Set the easy stuff
         self.css = self.theme.get();
         self.header = format!(r#"<h1>{}</h1>"#, self.title);
 
         for c in self.classes.iter() {
+            // Unwrap our class
+            // TODO(@monarrk): Make this safe? Probably?
             let d = match &c.def {
                 Definition::Class(c) => c,
                 _ => panic!("Not a class!"),
@@ -47,6 +54,7 @@ impl<'a> Generator<'a> {
                 .collect::<Vec<&str>>()
                 .join("");
 
+            // Add a new block to the content with our class
             self.content += &format!(r#"
                                     <hr/>
                                     <div class="block">
@@ -98,6 +106,7 @@ impl Default for Generator<'_> {
     }
 }
 
+// Enumeration of each theme
 pub enum Theme {
     Default,
 }
@@ -106,11 +115,7 @@ impl Theme {
     // Read the css theme file corresponding to the theme
     pub fn get(&self) -> String {
         match self {
-            Theme::Default => {
-                println!("{}", theme::DEFAULT_THEME_CSS);
-                theme::DEFAULT_THEME_CSS.to_owned()
-            },
-            _ => panic!("Not implemented!"),
+            Theme::Default => theme::DEFAULT_THEME_CSS.to_owned()
         }
     }
 }

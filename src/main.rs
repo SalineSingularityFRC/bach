@@ -16,17 +16,24 @@ use gen::{Generator, Theme};
 
 use regex::Regex;
 
+// Find a specific type of documentation out of a Vec<Doc>
 #[macro_export]
 macro_rules! find {
     ( $x:ident => classes ) => {
+        // TODO(@monarrk): Is it possible to use into_iter() here to we don't need to return a
+        // reference?
         $x.iter().filter(|d| d.is_class()).collect::<Vec<&Doc>>()
     };
 }
 
+// Where to output
 static BACH_DIR: &str = "./bach";
 
+// Walk through every directory and scan files
 fn walk(p: &Path, pattern: Regex) -> Result<Vec<Doc>, Box<dyn std::error::Error>> {
     let paths = fs::read_dir(p)?;
+
+    // TODO(@monarrk): Remove global muts?
     let mut isdoc = false;
     let mut comments: Vec<Doc> = Vec::new();
     let mut idx = 0usize;
@@ -46,10 +53,13 @@ fn walk(p: &Path, pattern: Regex) -> Result<Vec<Doc>, Box<dyn std::error::Error>
             let reader = BufReader::new(File::open(path)?);
 
             for line in reader.lines() {
+                // Unwrap line safely
                 let line = match line {
                     Ok(l) => l,
                     Err(_) => continue 'outer,
                 };
+
+                // is `line` a doc comment?
                 if pattern.is_match(line.as_str()) {
                     if comments.len() <= idx {
                         comments.push(Doc::new());
@@ -88,10 +98,12 @@ fn main() -> std::io::Result<()> {
     let cwd = Path::new("./");
     let docs = walk(cwd, pattern).unwrap();
 
+    // Get classes out of the docs
     let classes = find!(docs => classes);
     let mut generator = Generator::new(std::env::current_dir()?.to_str().unwrap().to_string(), classes, Theme::Default);
     let out = generator.generate();
 
+    // Create the output file
     let mut file = match File::create(&format!("{}/index.html", BACH_DIR)) {
         Ok(f) => f,
         Err(e) => {
@@ -100,6 +112,7 @@ fn main() -> std::io::Result<()> {
         }
     };
     
+    // Write the output file
     match file.write_all(out.as_bytes()) {
         Ok(_) => (),
         Err(e) => {
