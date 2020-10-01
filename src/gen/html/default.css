@@ -6,9 +6,13 @@
 //
 */
 
+:root {
+	--main-fg-color: #121212;
+}
+
 body {
 	background-color: #F4F4F9;
-	color: #121212;
+	color: var(--main-fg-color);
 }
 
 code {
@@ -19,13 +23,57 @@ h5 {
 	font-size: 1.1em;
 }
 
+.section-head {
+	color: var(--main-fg-color);
+	text-decoration: none;
+}
+.section-head:hover {
+	text-decoration: underline;
+}
+.section-head:before {
+	color: var(--main-fg-color);
+}
+.section-head:after {
+	color: var(--main-fg-color);
+}
+
 .block {
 	background-color: #586F7C;
 	color: #FFFFFF;
 	padding: 0.9em;
 	margin: 1.2em;
+	margin-left: 1.5em;
 }
 
 .sub {
 	color: #FFAAAA;
+}
+
+/* The sidebar menu */
+.sidebar {
+	height: 100%; /* Full-height: remove this if you want "auto" height */
+	width: 160px; /* Set the width of the sidebar */
+	position: fixed; /* Fixed Sidebar (stay in place on scroll) */
+	z-index: 1; /* Stay on top */
+	top: 0; /* Stay at the top */
+	left: 0;
+	overflow-x: hidden; /* Disable horizontal scroll */
+	padding-top: 20px;
+	border: 1px solid var(--main-fg-color);
+}
+
+/* The navigation menu links */
+.sidebar a {
+	padding: 6px 8px 6px 16px;
+	text-decoration: none;
+	font-size: 25px;
+	display: block;
+}
+.sidebar a:hover {
+	text-decoration: underline;
+}
+
+.main {
+	margin-left: 160px; /* same as the sidebar */
+	padding: 0px 10px;
 }

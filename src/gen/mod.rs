@@ -13,9 +13,10 @@ use crate::doc::{Doc, Definition};
 macro_rules! format_modifiers {
     ( $m:expr ) => {
         if $m.len() != 0 {
-            format!("<h5>Modifiers</h5>\n{}", 
-                    $m.split(" ")
-                        .map(|m| format!("<ul><code>{}</code></ul>", m))
+            format!("<h5>Modifiers</h5>\n<ul>{}</ul>", 
+                    $m.trim()
+                        .split(" ")
+                        .map(|m| format!("<li><code>{}</code></li>", m))
                         .collect::<Vec<String>>()
                         .join("\n"))
         } else {
@@ -24,6 +25,18 @@ macro_rules! format_modifiers {
     };
 }
 
+// Output html for the sidebar
+macro_rules! sidebar {
+    ( $x:expr ) => {
+        {
+            let mut s = String::new();
+            if $x.contains_classes() {
+                s += "<h4><a href=\"#classes\">Classes</a></h4>"
+            }
+            s
+        }
+    };
+}
 
 // A generator type for generating the documentation
 pub struct Generator<'a> {
@@ -51,12 +64,17 @@ impl<'a> Generator<'a> {
         self.theme = theme;
     }
 
+    pub fn contains_classes(&self) -> bool {
+        self.classes.len() != 0
+    }
+
     // Return a String of generated HTML derived from the information
     pub fn generate(&mut self) -> String {
         // Set the easy stuff
         self.css = self.theme.get();
         self.header = format!(r#"<h1>{}</h1>"#, self.title);
 
+        self.content += "<h1 id=\"classes\"><a href=\"#classes\" class=\"section-head\">Classes</a></h1>\n";
         for c in self.classes.iter() {
             // Unwrap our class
             // TODO(@monarrk): Make this safe? Probably?
@@ -100,17 +118,24 @@ impl<'a> Generator<'a> {
                         </style>
                     </head>
                     <body>
-                        {head}
-                        {content}
+                        <div class="sidebar">
+                            {bar}
+                        </div>
 
-                        <br/>
-                        <h6>Generated with <a href="https://github.com/SalineSingularityFRC/bach" target="_blank">Bach</a></h6>
+                        <div class="main">
+                            {head}
+                            {content}
+
+                            <br/>
+                            <h6>Generated with <a href="https://github.com/SalineSingularityFRC/bach" target="_blank">Bach</a></h6>
+                        </div>
                     </body>
                 </html>"#,
                 title = self.title,
                 css = self.css,
                 head = self.header,
-                content = self.content)
+                content = self.content,
+                bar = sidebar!(self))
     }
 }
 
