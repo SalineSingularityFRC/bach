@@ -88,9 +88,6 @@ fn main() -> std::io::Result<()> {
     let cwd = Path::new("./");
     let docs = walk(cwd, pattern).unwrap();
 
-    println!("{:#?}", docs);
-    println!("{:#?}", find!(docs => classes));
-
     let classes = find!(docs => classes);
     let mut generator = Generator::new(std::env::current_dir()?.to_str().unwrap().to_string(), classes, Theme::Default);
     let out = generator.generate();

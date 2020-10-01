@@ -9,7 +9,7 @@ use regex::Regex;
 #[derive(Debug)]
 pub struct Doc {
     pub tag: Vec<String>,
-    pub def: Definition
+    pub def: Definition,
 }
 
 impl Doc {
@@ -64,7 +64,8 @@ impl Definition {
                     String::from(match caps.name("modifier") {
                         Some(n) => n.as_str(),
                         None => "",
-                    }))),
+                    }),
+                    s.trim_end_matches("{").to_string())),
             _ => Definition::None,
         })
     }
@@ -74,17 +75,23 @@ impl Definition {
 pub struct ClassDef {
     name: String,
     modifiers: String,
+    raw: String,
 }
 
 impl ClassDef {
-    pub fn new(name: String, modifiers: String) -> Self {
+    pub fn new(name: String, modifiers: String, raw: String) -> Self {
         ClassDef {
             name,
-            modifiers
+            modifiers,
+            raw
         }
     }
 
     pub fn get_name(&self) -> &str {
         &self.name
+    }
+
+    pub fn raw(&self) -> &str {
+        &self.raw
     }
 }

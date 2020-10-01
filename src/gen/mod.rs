@@ -4,6 +4,8 @@
 //  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
 
+mod theme;
+
 use crate::doc::{Doc, Definition};
 
 pub struct Generator<'a> {
@@ -47,11 +49,17 @@ impl<'a> Generator<'a> {
 
             self.content += &format!(r#"
                                     <hr/>
-                                    <h3>Class {title}</h3>
-                                     <p>{tag}<p>
+                                    <div class="block">
+                                    <h3>Class <span class="sub"><b><code>{title}</code></b></span></h3>
+                                    <h5>Tag</h5>
+                                    <p>{tag}<p>
+                                    <h5>Definition</h5>
+                                    <p><code>{definition}</code></p>
+                                    </div>
                                      "#, 
                                      title = d.get_name(),
-                                     tag = tag);
+                                     tag = tag,
+                                     definition = d.raw());
         }
 
         // html template
@@ -95,9 +103,13 @@ pub enum Theme {
 }
 
 impl Theme {
+    // Read the css theme file corresponding to the theme
     pub fn get(&self) -> String {
         match self {
-            Theme::Default => String::new(),
+            Theme::Default => {
+                println!("{}", theme::DEFAULT_THEME_CSS);
+                theme::DEFAULT_THEME_CSS.to_owned()
+            },
             _ => panic!("Not implemented!"),
         }
     }
