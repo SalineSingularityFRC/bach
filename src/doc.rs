@@ -87,7 +87,7 @@ impl Definition {
 #[derive(Debug)]
 pub struct ClassDef {
     name: String,
-    modifiers: String,
+    pub modifiers: String,
     raw: String,
 }
 

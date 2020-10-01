@@ -8,6 +8,23 @@ mod theme;
 
 use crate::doc::{Doc, Definition};
 
+// Format modifiers
+// for the class template in Generator::generate()
+macro_rules! format_modifiers {
+    ( $m:expr ) => {
+        if $m.len() != 0 {
+            format!("<h5>Modifiers</h5>\n{}", 
+                    $m.split(" ")
+                        .map(|m| format!("<ul><code>{}</code></ul>", m))
+                        .collect::<Vec<String>>()
+                        .join("\n"))
+        } else {
+            String::new()
+        }
+    };
+}
+
+
 // A generator type for generating the documentation
 pub struct Generator<'a> {
     classes: Vec<&'a Doc>,
@@ -59,15 +76,16 @@ impl<'a> Generator<'a> {
                                     <hr/>
                                     <div class="block">
                                     <h3>Class <span class="sub"><b><code>{title}</code></b></span></h3>
-                                    <h5>Tag</h5>
                                     <p>{tag}<p>
+                                    {modifiers}
                                     <h5>Definition</h5>
                                     <p><code>{definition}</code></p>
                                     </div>
                                      "#, 
                                      title = d.get_name(),
                                      tag = tag,
-                                     definition = d.raw());
+                                     definition = d.raw(),
+                                     modifiers = format_modifiers!(d.modifiers));
         }
 
         // html template
