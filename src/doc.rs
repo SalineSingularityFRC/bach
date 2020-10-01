@@ -1,9 +1,15 @@
+//
+//  This Source Code Form is subject to the terms of the Mozilla Public
+//  License, v. 2.0. If a copy of the MPL was not distributed with this
+//  file, You can obtain one at http://mozilla.org/MPL/2.0/.
+//
+
 use regex::Regex;
 
 #[derive(Debug)]
 pub struct Doc {
-    tag: Vec<String>,
-    def: Definition
+    pub tag: Vec<String>,
+    pub def: Definition
 }
 
 impl Doc {
@@ -20,6 +26,13 @@ impl Doc {
 
     pub fn set_def(&mut self, def: Definition) {
         self.def = def;
+    }
+
+    pub fn is_class(&self) -> bool {
+        match self.def {
+            Definition::Class(_) => true,
+            _ => false
+        }
     }
 }
 
@@ -69,5 +82,9 @@ impl ClassDef {
             name,
             modifiers
         }
+    }
+
+    pub fn get_name(&self) -> &str {
+        &self.name
     }
 }

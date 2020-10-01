@@ -5,14 +5,23 @@
 //
 
 mod doc;
+mod gen;
 
 use std::path::Path;
 use std::fs::{self, File};
-use std::io::{self, prelude::*, BufReader};
+use std::io::{prelude::*, BufReader};
 
 use doc::{Doc, Definition};
+use gen::{Generator, Theme};
 
 use regex::Regex;
+
+#[macro_export]
+macro_rules! find {
+    ( $x:ident => classes ) => {
+        $x.iter().filter(|d| d.is_class()).collect::<Vec<&Doc>>()
+    };
+}
 
 static BACH_DIR: &str = "./bach";
 
@@ -77,8 +86,32 @@ fn main() -> std::io::Result<()> {
     // Match doc comments
     let pattern: Regex = Regex::new(r"(?i)^\s*///.*").unwrap();
     let cwd = Path::new("./");
-    let comments = walk(cwd, pattern).unwrap();
+    let docs = walk(cwd, pattern).unwrap();
 
-    println!("{:#?}", comments);
+    println!("{:#?}", docs);
+    println!("{:#?}", find!(docs => classes));
+
+    let classes = find!(docs => classes);
+    let mut generator = Generator::new(std::env::current_dir()?.to_str().unwrap().to_string(), classes, Theme::Default);
+    let out = generator.generate();
+
+    let mut file = match File::create(&format!("{}/index.html", BACH_DIR)) {
+        Ok(f) => f,
+        Err(e) => {
+            eprintln!("Couldn't open file for writing: {}", e);
+            std::process::exit(1);
+        }
+    };
+    
+    match file.write_all(out.as_bytes()) {
+        Ok(_) => (),
+        Err(e) => {
+            eprintln!("Couldn't write to file: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    println!("Done!");
+
     Ok(())
 }
