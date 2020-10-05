@@ -132,7 +132,7 @@ impl<'a> Generator<'a> {
                             {content}
 
                             <br/>
-                            <h6>Generated with <a href="https://github.com/SalineSingularityFRC/bach" target="_blank">Bach</a></h6>
+                            <h6>Generated with <a href="https://github.com/SalineSingularityFRC/bach" target="_blank">Bach</a> with the {theme} theme</h6>
                         </div>
                     </body>
                 </html>"#,
@@ -140,7 +140,8 @@ impl<'a> Generator<'a> {
                 css = self.css,
                 head = self.header,
                 content = self.content,
-                bar = sidebar!(self))
+                bar = sidebar!(self),
+                theme = self.theme.name())
     }
 }
 
@@ -167,6 +168,13 @@ impl Theme {
     pub fn get(&self) -> String {
         match self {
             Theme::Default => theme::DEFAULT_THEME_CSS.to_owned()
+        }
+    }
+
+    pub fn name(&self) -> &str {
+        match &self {
+            Theme::Default => "default",
+            // _ => "undefined",
         }
     }
 }
