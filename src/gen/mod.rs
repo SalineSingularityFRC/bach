@@ -31,7 +31,12 @@ macro_rules! sidebar {
         {
             let mut s = String::new();
             if $x.contains_classes() {
-                s += "<h4><a href=\"#classes\">Classes</a></h4>"
+                s += "<h4 class=\"sidebar-head\"><a href=\"#classes\">Classes</a></h4>\n";
+                s += "<ul>\n";
+                for c in &$x.classes {
+                    s += &format!("<li><span id=\"sidebar-item\"><a href=\"#class-{class}\">{class}</a></span></li>", class = c.name());
+                }
+                s += "</ul>\n";
             }
             s
         }
@@ -40,7 +45,7 @@ macro_rules! sidebar {
 
 // A generator type for generating the documentation
 pub struct Generator<'a> {
-    classes: Vec<&'a Doc>,
+    pub(crate) classes: Vec<&'a Doc>,
     theme: Theme,
     title: String,
     css: String,
@@ -93,7 +98,7 @@ impl<'a> Generator<'a> {
             self.content += &format!(r#"
                                     <hr/>
                                     <div class="block">
-                                    <h3>Class <span class="sub"><b><code>{title}</code></b></span></h3>
+                                    <h3>Class <span class="sub" id="class-{title}"><b><code>{title}</code></b></span></h3>
                                     <p>{tag}<p>
                                     {modifiers}
                                     <h5>Definition</h5>

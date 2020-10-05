@@ -37,6 +37,13 @@ impl Doc {
             _ => false
         }
     }
+
+    pub fn name(&self) -> &str {
+        match &self.def {
+            Definition::Class(c) => &c.name,
+            _ => ""
+        }
+    }
 }
 
 // An actual definition
