@@ -75,6 +75,12 @@ h5 {
 
 .sidebar-head {
 	font-size: 1.5em;
+	margin-bottom: 0em;
+	padding: 0em;
+}
+
+.sidebar-item {
+	margin: 0.01em;
 }
 
 .main {

@@ -34,7 +34,7 @@ macro_rules! sidebar {
                 s += "<h4 class=\"sidebar-head\"><a href=\"#classes\">Classes</a></h4>\n";
                 s += "<ul>\n";
                 for c in &$x.classes {
-                    s += &format!("<li><span id=\"sidebar-item\"><a href=\"#class-{class}\">{class}</a></span></li>", class = c.name());
+                    s += &format!("<li class=\"sidebar-item\"><a href=\"#class-{class}\">{class}</a></li>", class = c.name());
                 }
                 s += "</ul>\n";
             }
