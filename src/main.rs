@@ -85,6 +85,7 @@ fn walk(p: &Path, pattern: Regex) -> Result<Vec<Doc>, Box<dyn std::error::Error>
                                             if i.is_class() {
                                                 i.push_field(Definition::Field(f));
                                                 isdoc = false;
+                                                idx += 1;
                                                 break;
                                             }
                                         }

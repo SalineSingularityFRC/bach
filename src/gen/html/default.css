@@ -25,6 +25,7 @@ h5 {
 
 table {
 	border-collapse: collapse;
+	margin-left: 2em;
 }
 
 td, th {

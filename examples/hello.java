@@ -17,4 +17,7 @@ class Test {
 private abstract class Foo {
 	/// A field called bar
 	final String bar;
+
+	/// Bruh
+	public static final abstract transient Test bruh;
 }
