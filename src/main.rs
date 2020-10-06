@@ -74,9 +74,23 @@ fn walk(p: &Path, pattern: Regex) -> Result<Vec<Doc>, Box<dyn std::error::Error>
                         match Definition::derive(line) {
                             // if we match, set that to the definition
                             Some(d) => {
-                                comments[idx].set_def(d);
-                                isdoc = false;
-                                idx += 1;
+                                match d {
+                                    Definition::Class(c) => {
+                                        comments[idx].set_def(Definition::Class(c));
+                                        idx += 1;
+                                        isdoc = false;
+                                    },
+                                    Definition::Field(f) => {
+                                        for i in comments.iter_mut().rev() {
+                                            if i.is_class() {
+                                                i.push_field(Definition::Field(f));
+                                                isdoc = false;
+                                                break;
+                                            }
+                                        }
+                                    },
+                                    Definition::None => {}
+                                }
                             },
                             // if not, just continue
                             None => ()

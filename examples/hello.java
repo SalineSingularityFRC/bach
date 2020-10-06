@@ -8,11 +8,13 @@ public class hello {
 
 /// A class called 'Test'
 class Test {
-	int field = 0;
+	/// A field called count
+	int count = 0;
 }
 
 /// A class called 'Foo', private and abstract
 ///
 private abstract class Foo {
-
+	/// A field called bar
+	final String bar;
 }

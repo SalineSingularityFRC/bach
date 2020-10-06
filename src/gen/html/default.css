@@ -23,6 +23,16 @@ h5 {
 	font-size: 1.1em;
 }
 
+table {
+	border-collapse: collapse;
+}
+
+td, th {
+	border: 1px solid white;
+	text-align: left;
+	padding: 0.2em;
+}
+
 .section-head {
 	color: var(--main-fg-color);
 	text-decoration: none;

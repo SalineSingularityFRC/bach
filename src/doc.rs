@@ -13,6 +13,15 @@ pub struct Doc {
     pub def: Definition,
 }
 
+macro_rules! is {
+    ( $s:expr, $t:pat ) => {
+        match $s.def {
+            $t => true,
+            _ => false,
+        }
+    };
+}
+
 impl Doc {
     pub fn new() -> Self {
         Doc {
@@ -26,16 +35,24 @@ impl Doc {
         self.tag.push(s);
     }
 
+    pub fn push_field(&mut self, f: Definition) {
+        match &mut self.def {
+            Definition::Class(c) => c.push_field(f),
+            _ => panic!("Not a class"),
+        }
+    }
+
     // Set the definition 
     pub fn set_def(&mut self, def: Definition) {
         self.def = def;
     }
 
     pub fn is_class(&self) -> bool {
-        match self.def {
-            Definition::Class(_) => true,
-            _ => false
-        }
+        is!(&self, Definition::Class(_))
+    }
+
+    pub fn is_field(&self) -> bool {
+        is!(&self, Definition::Field(_))
     }
 
     pub fn name(&self) -> &str {
@@ -50,6 +67,7 @@ impl Doc {
 #[derive(Debug)]
 pub enum Definition {
     Class(ClassDef),
+    Field(FieldDef),
     None,
 }
 
@@ -83,10 +101,71 @@ impl Definition {
                         Some(n) => n.as_str(),
                         None => "",
                     }),
+                    // I spent so much time adding the infastructure to add arguments to classes
+                    // which is stupid but I'm keeping this piece here so I can refer to it when I
+                    // do methods
+                    //match caps.name("args") {
+                    //    Some(a) => a.as_str().split(",").map(|s| Variable::from_str(s)).collect::<Vec<Variable>>(),
+                    //    None => Vec::new(),
+                    //},
                     // Get the raw string with `{` taken off the end
-                    s.trim_end_matches("{").to_string())),
-            _ => Definition::None,
+                    s.trim_end_matches("{").to_string(),
+                    Vec::new())),
+
+            // Any other type, probably a variable?
+            // TODO(@monarrk): can we ensure it is a var?
+            _ => Definition::Field(FieldDef::new(
+                // Get the name
+                String::from(caps.name("name").unwrap().as_str()),
+                // Get the modifiers
+                String::from(match caps.name("modifier") {
+                    Some(m) => m.as_str(),
+                    None => "",
+                }),
+                // Raw definition string
+                s.to_string())),
         })
+    }
+}
+
+// A field definition
+#[derive(Debug)]
+pub struct FieldDef {
+    pub name: String,
+    pub modifiers: String,
+    pub raw: String,
+}
+
+impl FieldDef {
+    pub fn new(name: String, modifiers: String, raw: String) -> Self {
+        FieldDef {
+            name,
+            modifiers,
+            raw
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct Variable {
+    pub name: String,
+    pub ty: String,
+}
+
+impl Variable {
+    pub fn new(name: String, ty: String) -> Self {
+        Variable {
+            name,
+            ty
+        }
+    }
+
+    pub fn from_str(s: &str) -> Self {
+        let splt = s.split(" ").collect::<Vec<&str>>();
+        Variable {
+            name: splt[1].to_string(),
+            ty: splt[0].to_string(),
+        }
     }
 }
 
@@ -96,14 +175,16 @@ pub struct ClassDef {
     name: String,
     pub modifiers: String,
     raw: String,
+    pub fields: Vec<Definition>,
 }
 
 impl ClassDef {
-    pub fn new(name: String, modifiers: String, raw: String) -> Self {
+    pub fn new(name: String, modifiers: String, raw: String, fields: Vec<Definition>) -> Self {
         ClassDef {
             name,
             modifiers,
-            raw
+            raw,
+            fields
         }
     }
 
@@ -114,5 +195,9 @@ impl ClassDef {
     // Return the raw definition line straight from the source code
     pub fn raw(&self) -> &str {
         &self.raw
+    }
+
+    pub fn push_field(&mut self, f: Definition) {
+        self.fields.push(f);
     }
 }

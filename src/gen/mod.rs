@@ -25,6 +25,34 @@ macro_rules! format_modifiers {
     };
 }
 
+// Format fields to html
+// for the class template in Generator::generate()
+// TODO(@monarrk): what the fuck
+macro_rules! format_fields {
+    ( $m:expr ) => {
+        {
+            let mut s = String::new();
+            if $m.len() > 0 {
+                s = String::from("<h5>Fields</h5>\n<table>\n");
+                s += "<tr><th>Name</th><th>Definition</th>\n";
+                for i in $m.iter() {
+                    s += format!("{}",
+                        match i {
+                            Definition::Field(f) => {
+                                format!(r"<tr><td><code>{name}</code></td><td><code>{definition}</code></td></tr>",
+                                         name = f.name,
+                                         definition = f.raw)
+                            },
+                            _ => String::new()
+                        }).as_str()
+                }
+                s += "</table>";
+            }
+            s
+        }
+    };
+}
+
 // Output html for the sidebar
 macro_rules! sidebar {
     ( $x:expr ) => {
@@ -101,6 +129,7 @@ impl<'a> Generator<'a> {
                                     <h3>Class <span class="sub" id="class-{title}"><b><code>{title}</code></b></span></h3>
                                     <p>{tag}<p>
                                     {modifiers}
+                                    {fields}
                                     <h5>Definition</h5>
                                     <p><code>{definition}</code></p>
                                     </div>
@@ -108,7 +137,8 @@ impl<'a> Generator<'a> {
                                      title = d.get_name(),
                                      tag = tag,
                                      definition = d.raw(),
-                                     modifiers = format_modifiers!(d.modifiers));
+                                     modifiers = format_modifiers!(d.modifiers),
+                                     fields = format_fields!(d.fields));
         }
 
         // html template
