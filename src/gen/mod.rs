@@ -33,20 +33,23 @@ macro_rules! format_fields {
         {
             let mut s = String::new();
             if $m.len() > 0 {
-                s = String::from("<h5>Fields</h5>\n<table>\n");
-                s += "<tr><th>Name</th><th>Definition</th>\n";
+                s = String::from("<h5>Fields</h5>\n");
                 for i in $m.iter() {
-                    s += format!("{}",
-                        match &i.def {
+                    s += format!("<table><tr><th>Description</th</tr><td><code>{tag}</code></td><tr><th>Name</th><th>Definition</th></tr>{insert}</table><br/>",
+                        insert = match &i.def {
                             Definition::Field(f) => {
                                 format!(r"<tr><td><code>{name}</code></td><td><code>{definition}</code></td></tr>",
                                          name = f.name,
                                          definition = f.raw)
                             },
                             _ => String::new()
-                        }).as_str()
+                        }, 
+                        tag = i.tag.iter()
+                            .map(|t| t.trim().trim_start_matches("///"))
+                            .collect::<Vec<&str>>()
+                            .join("<br/>")
+                        ).as_str()
                 }
-                s += "</table>";
             }
             s
         }
@@ -118,9 +121,9 @@ impl<'a> Generator<'a> {
 
             let tag = c.tag
                 .iter()
-                .map(|s| s.trim_start_matches("///"))
+                .map(|s| s.trim().trim_start_matches("///"))
                 .collect::<Vec<&str>>()
-                .join("");
+                .join("<br>");
 
             // Add a new block to the content with our class
             self.content += &format!(r#"
