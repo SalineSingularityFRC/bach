@@ -37,7 +37,7 @@ macro_rules! format_fields {
                 s += "<tr><th>Name</th><th>Definition</th>\n";
                 for i in $m.iter() {
                     s += format!("{}",
-                        match i {
+                        match &i.def {
                             Definition::Field(f) => {
                                 format!(r"<tr><td><code>{name}</code></td><td><code>{definition}</code></td></tr>",
                                          name = f.name,
@@ -73,7 +73,7 @@ macro_rules! sidebar {
 
 // A generator type for generating the documentation
 pub struct Generator<'a> {
-    pub(crate) classes: Vec<&'a Doc>,
+    pub(crate) classes: Vec<&'a Doc<'a>>,
     theme: Theme,
     title: String,
     css: String,

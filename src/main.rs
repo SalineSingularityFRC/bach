@@ -31,7 +31,7 @@ macro_rules! find {
 static BACH_DIR: &str = "./bach";
 
 // Walk through every directory and scan files
-fn walk(p: &Path, pattern: Regex) -> Result<Vec<Doc>, Box<dyn std::error::Error>> {
+fn walk<'a>(p: &Path, pattern: Regex) -> Result<Vec<Doc<'a>>, Box<dyn std::error::Error>> {
     let paths = fs::read_dir(p)?;
 
     // TODO(@monarrk): Remove global muts?
@@ -49,7 +49,7 @@ fn walk(p: &Path, pattern: Regex) -> Result<Vec<Doc>, Box<dyn std::error::Error>
         if path.is_dir() {
             // If we find a directory, walk that directory recursively and append the result to the
             // comment Vec
-            comments.append(&mut walk(&path, pattern.clone())?);
+            comments.append(&mut walk(&path.clone(), pattern.clone())?);
         } else {
             let reader = BufReader::new(File::open(path)?);
 
@@ -65,30 +65,38 @@ fn walk(p: &Path, pattern: Regex) -> Result<Vec<Doc>, Box<dyn std::error::Error>
                     if comments.len() <= idx {
                         comments.push(Doc::new());
                     }
-                    comments[idx].push(line);
+                    comments[idx].push(line.clone());
                     isdoc = true;
                 } else {
                     // Are we currently documenting?
                     if isdoc {
                         // Derive a definition from the line, hoping it's a definition
-                        match Definition::derive(line) {
+                        match Definition::derive(line.clone()) {
                             // if we match, set that to the definition
                             Some(d) => {
                                 match d {
-                                    Definition::Class(c) => {
-                                        comments[idx].set_def(Definition::Class(c));
+                                    c @ Definition::Class(_) => {
+                                        comments[idx].set_def(c);
                                         idx += 1;
                                         isdoc = false;
                                     },
-                                    Definition::Field(f) => {
-                                        for i in comments.iter_mut().rev() {
-                                            if i.is_class() {
-                                                i.push_field(Definition::Field(f));
+                                    f @ Definition::Field(_) => {
+                                        // hack
+                                        let mut stop = false;
+                                        comments = comments.clone().into_iter().rev().map(|mut i| {
+                                            if stop {
+                                                return i;
+                                            } else if i.is_class() {
+                                                comments[idx].set_def(f.clone());
+                                                i.push_field(comments[idx].clone());
                                                 isdoc = false;
                                                 idx += 1;
-                                                break;
+                                                stop = true;
+                                                return i;
+                                            } else {
+                                                return i;
                                             }
-                                        }
+                                        }).collect();
                                     },
                                     Definition::None => {}
                                 }
@@ -102,7 +110,7 @@ fn walk(p: &Path, pattern: Regex) -> Result<Vec<Doc>, Box<dyn std::error::Error>
         }
     }
 
-    Ok(comments)
+    Ok(comments.clone())
 }
 
 // Logging macro for common logging patterns

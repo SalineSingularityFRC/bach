@@ -4,13 +4,16 @@
 //  file, You can obtain one at http://mozilla.org/MPL/2.0/.
 //
 
+use std::marker::PhantomData;
+
 use regex::Regex;
 
 // Something that is documented
-#[derive(Debug)]
-pub struct Doc {
+#[derive(Debug, Clone)]
+pub struct Doc<'a> {
     pub tag: Vec<String>,
-    pub def: Definition,
+    pub def: Definition<'a>,
+    _marker: PhantomData<&'a ()>,
 }
 
 macro_rules! is {
@@ -22,11 +25,12 @@ macro_rules! is {
     };
 }
 
-impl Doc {
+impl<'a> Doc<'a> {
     pub fn new() -> Self {
         Doc {
             tag: Vec::new(),
             def: Definition::None,
+            _marker: PhantomData,
         }
     }
 
@@ -35,7 +39,7 @@ impl Doc {
         self.tag.push(s);
     }
 
-    pub fn push_field(&mut self, f: Definition) {
+    pub fn push_field(&mut self, f: Doc<'a>) {
         match &mut self.def {
             Definition::Class(c) => c.push_field(f),
             _ => panic!("Not a class"),
@@ -43,7 +47,7 @@ impl Doc {
     }
 
     // Set the definition 
-    pub fn set_def(&mut self, def: Definition) {
+    pub fn set_def(&mut self, def: Definition<'a>) {
         self.def = def;
     }
 
@@ -64,14 +68,14 @@ impl Doc {
 }
 
 // An actual definition
-#[derive(Debug)]
-pub enum Definition {
-    Class(ClassDef),
+#[derive(Debug, Clone)]
+pub enum Definition<'a> {
+    Class(ClassDef<'a>),
     Field(FieldDef),
     None,
 }
 
-impl Definition {
+impl<'a> Definition<'a> {
     // Derive a definition from regex
     pub fn derive(s: String) -> Option<Self> {
         // java class definition pattern
@@ -95,12 +99,12 @@ impl Definition {
             // TODO(@monarrk): clean this please dear god
             "class" => Definition::Class(ClassDef::new(
                     // Get the name
-                    String::from(caps.name("name").unwrap().as_str()),
+                    caps.name("name").unwrap().as_str().to_owned(),
                     // Get the modifiers
-                    String::from(match caps.name("modifier") {
-                        Some(n) => n.as_str(),
-                        None => "",
-                    }),
+                    match caps.name("modifier") {
+                        Some(n) => n.as_str().to_owned(),
+                        None => String::new(),
+                    },
                     // I spent so much time adding the infastructure to add arguments to classes
                     // which is stupid but I'm keeping this piece here so I can refer to it when I
                     // do methods
@@ -109,27 +113,29 @@ impl Definition {
                     //    None => Vec::new(),
                     //},
                     // Get the raw string with `{` taken off the end
-                    s.trim_end_matches("{").to_string(),
+                    s.trim_end_matches("{").to_owned(),
                     Vec::new())),
 
-            // Any other type, probably a variable?
+            // Any other type without args, probably a variable?
             // TODO(@monarrk): can we ensure it is a var?
-            _ => Definition::Field(FieldDef::new(
+            _ if caps.name("args").is_none() => Definition::Field(FieldDef::new(
                 // Get the name
-                String::from(caps.name("name").unwrap().as_str()),
+                caps.name("name").unwrap().as_str().to_owned(),
                 // Get the modifiers
-                String::from(match caps.name("modifier") {
-                    Some(m) => m.as_str(),
-                    None => "",
-                }),
+                match caps.name("modifier") {
+                    Some(m) => m.as_str().to_owned(),
+                    None => String::new(),
+                },
                 // Raw definition string
-                s.to_string())),
+                s.clone())),
+
+            _ => Definition::None,
         })
     }
 }
 
 // A field definition
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FieldDef {
     pub name: String,
     pub modifiers: String,
@@ -139,51 +145,51 @@ pub struct FieldDef {
 impl FieldDef {
     pub fn new(name: String, modifiers: String, raw: String) -> Self {
         FieldDef {
-            name,
-            modifiers,
-            raw
+            name: name.clone(),
+            modifiers: modifiers.clone(),
+            raw: raw.clone()
         }
     }
 }
 
-#[derive(Debug)]
-pub struct Variable {
-    pub name: String,
-    pub ty: String,
+#[derive(Debug, Clone)]
+pub struct Variable<'a> {
+    pub name: &'a str,
+    pub ty: &'a str,
 }
 
-impl Variable {
-    pub fn new(name: String, ty: String) -> Self {
+impl<'a> Variable<'a> {
+    pub fn new(name: &'a str, ty: &'a str) -> Self {
         Variable {
             name,
             ty
         }
     }
 
-    pub fn from_str(s: &str) -> Self {
+    pub fn from_str(s: &'a str) -> Self {
         let splt = s.split(" ").collect::<Vec<&str>>();
         Variable {
-            name: splt[1].to_string(),
-            ty: splt[0].to_string(),
+            name: splt[1],
+            ty: splt[0],
         }
     }
 }
 
 // A class definition
-#[derive(Debug)]
-pub struct ClassDef {
+#[derive(Debug, Clone)]
+pub struct ClassDef<'a> {
     name: String,
     pub modifiers: String,
     raw: String,
-    pub fields: Vec<Definition>,
+    pub fields: Vec<Doc<'a>>,
 }
 
-impl ClassDef {
-    pub fn new(name: String, modifiers: String, raw: String, fields: Vec<Definition>) -> Self {
+impl<'a> ClassDef<'a> {
+    pub fn new(name: String, modifiers: String, raw: String, fields: Vec<Doc<'a>>) -> Self {
         ClassDef {
-            name,
-            modifiers,
-            raw,
+            name: name.clone(),
+            modifiers: modifiers.clone(),
+            raw: raw.clone(),
             fields
         }
     }
@@ -197,7 +203,7 @@ impl ClassDef {
         &self.raw
     }
 
-    pub fn push_field(&mut self, f: Definition) {
+    pub fn push_field(&mut self, f: Doc<'a>) {
         self.fields.push(f);
     }
 }
