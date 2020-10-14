@@ -25,6 +25,19 @@ macro_rules! find {
         // reference?
         $x.iter().filter(|d| d.is_class()).collect::<Vec<&Doc>>()
     };
+
+    ( $x:ident => methods ) => {
+        $x.iter().filter(|d| d.is_method()).collect::<Vec<&Doc>>()
+    };
+}
+
+macro_rules! extract_pkg {
+    ( $x:expr ) => {
+        match &$x {
+            Some(s) => String::from(s.clone()),
+            None => String::from("Unknown"),
+        }
+    };
 }
 
 // Where to output
@@ -40,7 +53,7 @@ fn walk<'a>(p: &Path, pattern: Regex) -> Result<Vec<Doc<'a>>, Box<dyn std::error
     let mut idx = 0usize;
 
     // init comments vec
-    comments.push(Doc::new());
+    //comments.push(Doc::new(String::new()));
 
     'outer: for path in paths {
         // shadow path to unwrap and convert to an actual Path
@@ -53,6 +66,8 @@ fn walk<'a>(p: &Path, pattern: Regex) -> Result<Vec<Doc<'a>>, Box<dyn std::error
         } else {
             let reader = BufReader::new(File::open(path)?);
 
+            let mut package = None;
+
             for line in reader.lines() {
                 // Unwrap line safely
                 let line = match line {
@@ -60,10 +75,16 @@ fn walk<'a>(p: &Path, pattern: Regex) -> Result<Vec<Doc<'a>>, Box<dyn std::error
                     Err(_) => continue 'outer,
                 };
 
+                if line.starts_with("package ") {
+                    package = Some(format!("{}", line.trim()
+                        .trim_start_matches("package ")
+                        .trim_end_matches(";")));
+                }
+
                 // is `line` a doc comment?
                 if pattern.is_match(line.as_str()) {
                     if comments.len() <= idx {
-                        comments.push(Doc::new());
+                        comments.push(Doc::new(extract_pkg!(package)));
                     }
                     comments[idx].push(line.clone());
                     isdoc = true;
@@ -80,7 +101,8 @@ fn walk<'a>(p: &Path, pattern: Regex) -> Result<Vec<Doc<'a>>, Box<dyn std::error
                                         idx += 1;
                                         isdoc = false;
                                     },
-                                    f @ Definition::Field(_) => {
+
+                                    f @ Definition::Field(_) | f @ Definition::Method(_) => {
                                         // hack
                                         let mut stop = false;
                                         comments = comments.clone().into_iter().rev().map(|mut i| {
@@ -98,6 +120,13 @@ fn walk<'a>(p: &Path, pattern: Regex) -> Result<Vec<Doc<'a>>, Box<dyn std::error
                                             }
                                         }).collect();
                                     },
+
+                                    /*
+                                    m @ Definition::Method(_) => {
+                                        
+                                    },
+                                    */
+
                                     Definition::None => {}
                                 }
                             },
@@ -154,7 +183,7 @@ fn main() -> std::io::Result<()> {
     // Get classes out of the docs
     let classes = find!(docs => classes);
     // TODO(@monarrk): There's no way this needs to be this long
-    let mut generator = Generator::new(std::env::current_dir()?.to_str().expect("Failed to get current working directory as string").to_string(), classes, Theme::Default);
+    let mut generator = Generator::new(docs[0].pkg.clone(), classes, Theme::Default);
     let out = generator.generate();
 
     // Create the output file

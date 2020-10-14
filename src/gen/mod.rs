@@ -42,7 +42,12 @@ macro_rules! format_fields {
                                          name = f.name,
                                          definition = f.raw)
                             },
-                            _ => String::new()
+                            Definition::Method(m) => {
+                                format!(r"<tr><td><code>{name}</code></td><td><code>{definition}</code></td></tr>",
+                                        name = m.name,
+                                        definition = m.raw.trim().trim_end_matches("{"))
+                            },
+                            _ => String::new(),
                         }, 
                         tag = i.tag.iter()
                             .map(|t| t.trim().trim_start_matches("///"))
@@ -108,7 +113,7 @@ impl<'a> Generator<'a> {
     pub fn generate(&mut self) -> String {
         // Set the easy stuff
         self.css = self.theme.get();
-        self.header = format!(r#"<h1>{}</h1>"#, self.title);
+        self.header = format!(r#"<h1>Package {}</h1>"#, self.title);
 
         self.content += "<h1 id=\"classes\"><a href=\"#classes\" class=\"section-head\">Classes</a></h1>\n";
         for c in self.classes.iter() {
@@ -150,7 +155,7 @@ impl<'a> Generator<'a> {
                 <html>
                     <head>
                         <meta charset="utf-8"/>
-                        <title>{title}</title>
+                        <title>Package {title}</title>
                         <style>
                             {css}
                         </style>

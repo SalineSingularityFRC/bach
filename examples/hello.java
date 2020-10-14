@@ -1,3 +1,5 @@
+package examples;
+
 /// The main class hello
 /// These are documentation comments
 public class hello {
