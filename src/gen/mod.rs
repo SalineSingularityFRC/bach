@@ -66,6 +66,9 @@ macro_rules! sidebar {
     ( $x:expr ) => {
         {
             let mut s = String::new();
+            
+            // Add the SS logo
+            s += r#"<img src="https://raw.githubusercontent.com/SalineSingularityFRC/ScoutApp2020/master/app/src/main/res/drawable/robotics.png" width="150" height="150"/>"#;
             if $x.contains_classes() {
                 s += "<h4 class=\"sidebar-head\"><a href=\"#classes\">Classes</a></h4>\n";
                 s += "<ul>\n";

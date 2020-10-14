@@ -71,6 +71,7 @@ td, th {
 	overflow-x: hidden; /* Disable horizontal scroll */
 	padding-top: 20px;
 	border: 1px solid var(--main-fg-color);
+	border-top: 0px solid;
 }
 
 /* The navigation menu links */
