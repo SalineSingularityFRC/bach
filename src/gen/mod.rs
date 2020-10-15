@@ -5,6 +5,8 @@
 //
 
 mod theme;
+pub use theme::Theme;
+
 
 use crate::doc::{Doc, Definition};
 
@@ -195,27 +197,6 @@ impl Default for Generator<'_> {
             css: String::new(),
             content: String::new(),
             header: String::new(),
-        }
-    }
-}
-
-// Enumeration of each theme
-pub enum Theme {
-    Default,
-}
-
-impl Theme {
-    // Read the css theme file corresponding to the theme
-    pub fn get(&self) -> String {
-        match self {
-            Theme::Default => theme::DEFAULT_THEME_CSS.to_owned()
-        }
-    }
-
-    pub fn name(&self) -> &str {
-        match &self {
-            Theme::Default => "default",
-            // _ => "undefined",
         }
     }
 }
