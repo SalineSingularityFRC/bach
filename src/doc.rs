@@ -143,8 +143,14 @@ impl<'a> Definition<'a> {
                 },
                 // Get the arguments and put them into a Vec<Variable>
                 match caps.name("args") {
-                    Some(a) => a.as_str().split(",").map(|s| Variable::from_str(s)).collect::<Vec<Variable>>(),
-                    None => Vec::new(),
+                    Some(a) => {
+                        if a.as_str().len() != 0 {
+                            Some(a.as_str().split(",").map(|s| Variable::from_str(s)).collect::<Vec<Variable>>())
+                        } else {
+                            None
+                        }
+                    },
+                    None => None,
                 },
                 // Get the raw string for the decl
                 s.trim_end_matches("{").to_owned())),
@@ -181,12 +187,12 @@ impl Variable {
 pub struct MethodDef {
     pub name: String,
     pub modifiers: String,
-    pub args: Vec<Variable>,
+    pub args: Option<Vec<Variable>>,
     pub raw: String,
 }
 
 impl MethodDef {
-    pub fn new(name: String, modifiers: String, args: Vec<Variable>, raw: String) -> Self {
+    pub fn new(name: String, modifiers: String, args: Option<Vec<Variable>>, raw: String) -> Self {
         MethodDef {
             name,
             modifiers,

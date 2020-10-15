@@ -64,6 +64,7 @@ fn walk<'a>(p: &Path, pattern: Regex) -> Result<Vec<Doc<'a>>, Box<dyn std::error
             // comment Vec
             comments.append(&mut walk(&path.clone(), pattern.clone())?);
         } else {
+            logb!(format!("Scanning file {}", path.to_str().unwrap()));
             let reader = BufReader::new(File::open(path)?);
 
             let mut package = None;
@@ -143,6 +144,7 @@ fn walk<'a>(p: &Path, pattern: Regex) -> Result<Vec<Doc<'a>>, Box<dyn std::error
 }
 
 // Logging macro for common logging patterns
+#[macro_export]
 macro_rules! logb {
     // Default pattern
     ( $s:expr ) => {
